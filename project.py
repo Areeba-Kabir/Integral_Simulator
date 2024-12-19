@@ -1,38 +1,38 @@
 import streamlit as st
 import sympy as sp
 import numpy as np
-from sympy import symbols, sympify
+from sympy import symbols, sympify, sin, cos
 
 # Define utility functions
-def f(x, equation):
-    """Evaluate the equation at a given x."""
-    return equation.evalf(subs={symbols('x'): x})
+def f(x, y, equation):
+    """Evaluate the equation at given x and y."""
+    return equation.evalf(subs={symbols('x'): x, symbols('y'): y})
 
-def simpson_one_third(equation, a, b, n):
+def simpson_one_third(equation, a, b, n, y_value):
     """Simpson's 1/3rd Rule."""
     h = (b - a) / n
     x = np.linspace(a, b, n + 1)
-    y = [f(i, equation) for i in x]
+    y = [f(i, y_value, equation) for i in x]
     
     integral = y[0] + y[-1] + 4 * sum(y[1:-1:2]) + 2 * sum(y[2:-2:2])
     integral *= h / 3
     return integral
 
-def simpson_three_eighth(equation, a, b, n):
+def simpson_three_eighth(equation, a, b, n, y_value):
     """Simpson's 3/8th Rule."""
     h = (b - a) / n
     x = np.linspace(a, b, n + 1)
-    y = [f(i, equation) for i in x]
+    y = [f(i, y_value, equation) for i in x]
 
     integral = y[0] + y[-1] + 3 * sum(y[1:-1:3]) + 3 * sum(y[2:-1:3]) + 2 * sum(y[3:-3:3])
     integral *= 3 * h / 8
     return integral
 
-def trapezoidal(equation, a, b, n):
+def trapezoidal(equation, a, b, n, y_value):
     """Trapezoidal Rule."""
     h = (b - a) / n
     x = np.linspace(a, b, n + 1)
-    y = [f(i, equation) for i in x]
+    y = [f(i, y_value, equation) for i in x]
 
     integral = (y[0] + y[-1]) / 2 + sum(y[1:-1])
     integral *= h
@@ -72,27 +72,28 @@ if unequal_intervals:
             st.error(f"Error: {e}")
 else:
     st.subheader("Integration for Equal Intervals")
-    equation_str = st.text_input("Enter the mathematical equation (e.g., x**2 + 3*x + 2):")
+    equation_str = st.text_input("Enter the mathematical equation (e.g., sin(x) + cos(y)):")
     h = st.number_input("Enter the step size (h):", min_value=0.0001, step=0.001, format="%.4f")
     x0 = st.number_input("Enter the start value (x0):", step=0.1, format="%.1f")
     xn = st.number_input("Enter the end value (xn):", step=0.1, format="%.1f")
+    y_value = st.number_input("Enter the constant y value:", step=0.1, format="%.1f")
 
     if st.button("Calculate Integral for Equal Intervals"):
         try:
-            x, y = symbols('x y')
-            equation = sympify(equation_str)
+            x, y = symbols('x y')  # Define both symbols x and y
+            equation = sympify(equation_str)  # Parse the equation string into a sympy expression
             n = int((xn - x0) / h)
 
             if n % 2 == 0:
                 if n % 3 == 0:
                     st.info("Using Simpson's 3/8th Rule because the number of intervals (n) is divisible by 3.")
-                    result = simpson_three_eighth(equation, x0, xn, n)
+                    result = simpson_three_eighth(equation, x0, xn, n, y_value)
                 else:
                     st.info("Using Simpson's 1/3rd Rule because the number of intervals (n) is even but not divisible by 3.")
-                    result = simpson_one_third(equation, x0, xn, n)
+                    result = simpson_one_third(equation, x0, xn, n, y_value)
             else:
                 st.info("Using Trapezoidal Rule because the number of intervals (n) is odd.")
-                result = trapezoidal(equation, x0, xn, n)
+                result = trapezoidal(equation, x0, xn, n, y_value)
 
             st.success(f"The integral value is: {result}")
         except Exception as e:
