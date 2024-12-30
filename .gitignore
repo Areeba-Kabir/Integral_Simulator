@@ -1,0 +1,29 @@
+# Environment folder
+.env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Streamlit-specific
+.streamlit/
+
+# Jupyter Notebook checkpoints (if using notebooks)
+.ipynb_checkpoints/
+
+# VSCode settings (if using VSCode)
+.vscode/
+
+# Python virtual environment
+venv/
+env/
+
+# Compiled files
+*.so
+
+# Test coverage files
+.coverage
