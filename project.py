@@ -44,6 +44,18 @@ def unequal_intervals_trapezoidal(x_vals, y_vals):
         integral += h * (y_vals[i] + y_vals[i + 1]) / 2
     return integral
 
+def trapezoidal_rule_from_points(x_vals, y_vals):
+    """Calculate the integral using the Trapezoidal Rule for equal intervals."""
+    n = len(x_vals)
+    if len(y_vals) != n:
+        raise ValueError("x_vals and y_vals must have the same length.")  
+    integral = y_vals[0] + y_vals[-1]  
+    for i in range(1, n - 1):
+        integral += 2 * y_vals[i]   
+    h = x_vals[1] - x_vals[0]  
+    integral *= h / 2  
+    return integral
+
 # Streamlit GUI
 st.title("Numerical Integration Methods with Plotting")
 st.write("Choose a method to calculate the integral of a function and visualize the process.")
@@ -78,47 +90,74 @@ if unequal_intervals:
         except Exception as e:
             st.error(f"Error: {e}")
 else:
+    Func = st.checkbox("Do you want to give function?")
     st.subheader("Integration for Equal Intervals")
-    equation_str = st.text_input("Enter the mathematical equation (e.g., sin(x) + cos(y)):")
-    h = st.number_input("Enter the step size (h):", min_value=0.0001, step=0.001, format="%.4f")
-    x0 = st.number_input("Enter the start value (x0):", step=0.1, format="%.1f")
-    xn = st.number_input("Enter the end value (xn):", step=0.1, format="%.1f")
-    y_value = st.number_input("Enter the constant y value:", step=0.1, format="%.1f")
+    if Func:
+        equation_str = st.text_input("Enter the mathematical equation (e.g., sin(x) + cos(y)):")
+        h = st.number_input("Enter the step size (h):", min_value=0.0001, step=0.001, format="%.4f")
+        x0 = st.number_input("Enter the start value (x0):", step=0.1, format="%.1f")
+        xn = st.number_input("Enter the end value (xn):", step=0.1, format="%.1f")
+        y_value = st.number_input("Enter the constant y value:", step=0.1, format="%.1f")
 
-    if st.button("Calculate and Plot Integral"):
-        try:
-            x, y = symbols('x y')  # Define both symbols x and y
-            equation = sympify(equation_str, locals={'e': E})  
-            equation_func = sp.lambdify((x, y), equation, modules=['numpy'])  # Convert to numerical function
-            n = int((xn - x0) / h)
+        if st.button("Calculate and Plot Integral"):
+            try:
+                x, y = symbols('x y')  # Define both symbols x and y
+                equation = sympify(equation_str, locals={'e': E})  
+                equation_func = sp.lambdify((x, y), equation, modules=['numpy'])  # Convert to numerical function
+                n = int((xn - x0) / h)
 
-            if n % 2 == 0:
-                if n % 3 == 0:
-                    st.info("Using Simpson's 3/8th Rule.")
-                    result = simpson_three_eighth(equation_func, x0, xn, n, y_value)
+                if n % 2 == 0:
+                    if n % 3 == 0:
+                        st.info("Using Simpson's 3/8th Rule.")
+                        result = simpson_three_eighth(equation_func, x0, xn, n, y_value)
+                    else:
+                        st.info("Using Simpson's 1/3rd Rule.")
+                        result = simpson_one_third(equation_func, x0, xn, n, y_value)
                 else:
-                    st.info("Using Simpson's 1/3rd Rule.")
-                    result = simpson_one_third(equation_func, x0, xn, n, y_value)
-            else:
-                st.info("Using Trapezoidal Rule.")
-                result = trapezoidal(equation_func, x0, xn, n, y_value)
+                    st.info("Using Trapezoidal Rule.")
+                    result = trapezoidal(equation_func, x0, xn, n, y_value)
 
-            st.success(f"The integral value is: {result}")
+                st.success(f"The integral value is: {result}")
 
-            # Plotting
-            x_vals = np.linspace(x0, xn, 100)
-            y_vals = [f(i, y_value, equation_func) for i in x_vals]
+                # Plotting
+                x_vals = np.linspace(x0, xn, 100)
+                y_vals = [f(i, y_value, equation_func) for i in x_vals]
 
-            fig, ax = plt.subplots()
-            ax.plot(x_vals, y_vals, label=str(equation))
-            ax.fill_between(x_vals, y_vals, alpha=0.3, label="Integration Area")
-            ax.set_xlabel("x")
-            ax.set_ylabel("f(x, y)")
-            ax.set_title("Plot of the Function and Integration Area")
-            ax.legend()
-            st.pyplot(fig)
+                fig, ax = plt.subplots()
+                ax.plot(x_vals, y_vals, label=str(equation))
+                ax.fill_between(x_vals, y_vals, alpha=0.3, label="Integration Area")
+                ax.set_xlabel("x")
+                ax.set_ylabel("f(x, y)")
+                ax.set_title("Plot of the Function and Integration Area")
+                ax.legend()
+                st.pyplot(fig)
 
-        except Exception as e:
-            st.error(f"Error: {e}")
+            except Exception as e:
+                st.error(f"Error: {e}")
+    else:
+        x_vals = st.text_input("Enter x values separated by space (e.g., 0 1 1.5 2):")
+        y_vals = st.text_input("Enter corresponding y values separated by space (e.g., 0 1 2.25 4):")
+
+        if st.button("Calculate Integral for Points"):
+            try:
+                x_vals = list(map(float, x_vals.split()))
+                y_vals = list(map(float, y_vals.split()))
+
+                if len(x_vals) != len(y_vals):
+                    st.error("Error: The number of x and y values must be the same.")
+                else:
+                    result = trapezoidal_rule_from_points(x_vals, y_vals)
+                    st.success(f"The integral value is: {result}")
+
+                    # Plot points
+                    fig, ax = plt.subplots()
+                    ax.plot(x_vals, y_vals, marker='o', label="Provided Points")
+                    ax.set_xlabel("x")
+                    ax.set_ylabel("y")
+                    ax.set_title("Scatter Plot of Provided Points")
+                    ax.legend()
+                    st.pyplot(fig)
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 st.write("You can reset the input fields to perform the calculations again.")
