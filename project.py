@@ -146,17 +146,29 @@ else:
                 if len(x_vals) != len(y_vals):
                     st.error("Error: The number of x and y values must be the same.")
                 else:
-                    result = trapezoidal_rule_from_points(x_vals, y_vals)
-                    st.success(f"The integral value is: {result}")
+                    h = x_vals[1] - x_vals[0]
+                    error = ""
+                    for i in range(1, len(x_vals) - 1):
+                        if x_vals[i + 1] - x_vals[i] != h:
+                            error = "Error: x_vals must have equal spacing between points."
+                            break  # Exit the loop if unequal spacing is found
+                    
+                    if error:
+                        st.error(error)
+                    else:
+                        # If no error, calculate the integral using the trapezoidal rule
+                        result = trapezoidal_rule_from_points(x_vals, y_vals)
+                        st.success(f"The integral value is: {result}")
 
-                    # Plot points
-                    fig, ax = plt.subplots()
-                    ax.plot(x_vals, y_vals, marker='o', label="Provided Points")
-                    ax.set_xlabel("x")
-                    ax.set_ylabel("y")
-                    ax.set_title("Scatter Plot of Provided Points")
-                    ax.legend()
-                    st.pyplot(fig)
+                        # Plot points
+                        fig, ax = plt.subplots()
+                        ax.plot(x_vals, y_vals, marker='o', label="Provided Points")
+                        ax.set_xlabel("x")
+                        ax.set_ylabel("y")
+                        ax.set_title("Scatter Plot of Provided Points")
+                        ax.legend()
+                        st.pyplot(fig)
+                    
             except Exception as e:
                 st.error(f"Error: {e}")
 
