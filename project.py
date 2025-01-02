@@ -2,7 +2,7 @@ import streamlit as st
 import sympy as sp
 import numpy as np
 import matplotlib.pyplot as plt
-from sympy import symbols, sympify
+from sympy import symbols, sympify, sin, cos, E  
 
 # Define utility functions
 def f(x, y, equation_func):
@@ -88,7 +88,7 @@ else:
     if st.button("Calculate and Plot Integral"):
         try:
             x, y = symbols('x y')  # Define both symbols x and y
-            equation = sympify(equation_str)  # Parse the equation string into a sympy expression
+            equation = sympify(equation_str, locals={'e': E})  
             equation_func = sp.lambdify((x, y), equation, modules=['numpy'])  # Convert to numerical function
             n = int((xn - x0) / h)
 
